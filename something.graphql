@@ -1,0 +1,18 @@
+schema {
+    mutation: Mutation
+}
+
+input SomeInput {
+    isApproved: Boolean! = true
+    someId: String!
+    somefield: String!
+}
+
+type Something {
+    someId: String!
+    somefield: String!
+}
+
+type Mutation {
+    addSomething(input: SomeInput): Something!
+}
