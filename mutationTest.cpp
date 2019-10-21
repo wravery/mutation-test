@@ -10,17 +10,27 @@ using namespace graphql;
 class MockSomething : public some::object::Something
 {
 public:
-    MockSomething() = default;
+	MockSomething() = default;
 
-    service::FieldResult<response::StringType> getSomeId(service::FieldParams&& params) const final
-    {
-        return std::string("01");
-    }
+	service::FieldResult<response::StringType> getSomeId(service::FieldParams&& params) const final
+	{
+		return std::string("01");
+	}
 
-    service::FieldResult<response::StringType> getSomefield(service::FieldParams&& params) const final
-    {
-        return std::string("foobar");
-    }
+	service::FieldResult<response::StringType> getSomefield(service::FieldParams&& params) const final
+	{
+		return std::string("foobar");
+	}
+
+	service::FieldResult<response::Value> getDate(service::FieldParams&& params) const final
+	{
+		response::Value date(response::Type::Map);
+
+		date.emplace_back("foo", response::Value{ "bar" });
+
+		return date;
+	}
+
 };
 
 class MockMutation : public some::object::Mutation
@@ -59,12 +69,13 @@ TEST_F(SomeSchemaTest, queryWithVariables)
     auto query = R"gql(mutation variables($data: SomeInput!) {
         withVariables: addSomething(input: $data) {
             somefield
+            date
         }
     })gql"_graphql;
-    auto variables = response::parseJSON(R"js({ "data": { "someId": "01", "somefield": "foobar", "date": null } })js");
+    auto variables = response::parseJSON(R"js({ "data": { "someId": "01", "somefield": "foobar", "date": { "foo": "bar" } })js");
     auto result = operations_->resolve({}, *query.root, "variables", std::move(variables)).get();
 
-    std::cout << response::toJSON(std::move(result)) << std::endl;
+	ASSERT_EQ(R"js({"data":{"withVariables":{"somefield":"foobar","date":{"foo":"bar"}}}})js", response::toJSON(std::move(result))) << "output matches";
 }
 
 TEST_F(SomeSchemaTest, queryWithInlineInput)
@@ -72,9 +83,10 @@ TEST_F(SomeSchemaTest, queryWithInlineInput)
     auto query = R"gql(mutation inputs {
         withInlineInput: addSomething(input: { someId: "01" somefield: "foobar" date: { foo: "bar" } }) {
             somefield
+            date
         }
     })gql"_graphql;
     auto result = operations_->resolve({}, *query.root, "inputs", {}).get();
 
-    std::cout << response::toJSON(std::move(result)) << std::endl;
+	ASSERT_EQ(R"js({"data":{"withInlineInput":{"somefield":"foobar","date":{"foo":"bar"}}}})js", response::toJSON(std::move(result))) << "output matches";
 }

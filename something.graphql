@@ -14,6 +14,7 @@ input SomeInput {
 type Something {
     someId: String!
     somefield: String!
+    date: DateTime!
 }
 
 type Mutation {
