@@ -10,26 +10,26 @@ using namespace graphql;
 class MockSomething : public some::object::Something
 {
 public:
-	MockSomething() = default;
+    MockSomething() = default;
 
-	service::FieldResult<response::StringType> getSomeId(service::FieldParams&& params) const final
-	{
-		return std::string("01");
-	}
+    service::FieldResult<response::StringType> getSomeId(service::FieldParams&& params) const final
+    {
+        return std::string("01");
+    }
 
-	service::FieldResult<response::StringType> getSomefield(service::FieldParams&& params) const final
-	{
-		return std::string("foobar");
-	}
+    service::FieldResult<response::StringType> getSomefield(service::FieldParams&& params) const final
+    {
+        return std::string("foobar");
+    }
 
-	service::FieldResult<response::Value> getDate(service::FieldParams&& params) const final
-	{
-		response::Value date(response::Type::Map);
+    service::FieldResult<response::Value> getDate(service::FieldParams&& params) const final
+    {
+        response::Value date(response::Type::Map);
 
-		date.emplace_back("foo", response::Value{ "bar" });
+        date.emplace_back("foo", response::Value{ "bar" });
 
-		return date;
-	}
+        return date;
+    }
 
 };
 
@@ -75,7 +75,7 @@ TEST_F(SomeSchemaTest, queryWithVariables)
     auto variables = response::parseJSON(R"js({ "data": { "someId": "01", "somefield": "foobar", "date": { "foo": "bar" } })js");
     auto result = operations_->resolve({}, *query.root, "variables", std::move(variables)).get();
 
-	ASSERT_EQ(R"js({"data":{"withVariables":{"somefield":"foobar","date":{"foo":"bar"}}}})js", response::toJSON(std::move(result))) << "output matches";
+    ASSERT_EQ(R"js({"data":{"withVariables":{"somefield":"foobar","date":{"foo":"bar"}}}})js", response::toJSON(std::move(result))) << "output matches";
 }
 
 TEST_F(SomeSchemaTest, queryWithInlineInput)
@@ -88,5 +88,5 @@ TEST_F(SomeSchemaTest, queryWithInlineInput)
     })gql"_graphql;
     auto result = operations_->resolve({}, *query.root, "inputs", {}).get();
 
-	ASSERT_EQ(R"js({"data":{"withInlineInput":{"somefield":"foobar","date":{"foo":"bar"}}}})js", response::toJSON(std::move(result))) << "output matches";
+    ASSERT_EQ(R"js({"data":{"withInlineInput":{"somefield":"foobar","date":{"foo":"bar"}}}})js", response::toJSON(std::move(result))) << "output matches";
 }
