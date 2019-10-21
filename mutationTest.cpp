@@ -61,7 +61,7 @@ TEST_F(SomeSchemaTest, queryWithVariables)
             somefield
         }
     })gql"_graphql;
-    auto variables = response::parseJSON(R"js({ "data": { "someId": "01", "somefield": "foobar", } })js");
+    auto variables = response::parseJSON(R"js({ "data": { "someId": "01", "somefield": "foobar", "date": null } })js");
     auto result = operations_->resolve({}, *query.root, "variables", std::move(variables)).get();
 
     std::cout << response::toJSON(std::move(result)) << std::endl;
@@ -70,7 +70,7 @@ TEST_F(SomeSchemaTest, queryWithVariables)
 TEST_F(SomeSchemaTest, queryWithInlineInput)
 {
     auto query = R"gql(mutation inputs {
-        withInlineInput: addSomething(input: { someId: "01" somefield: "foobar" }) {
+        withInlineInput: addSomething(input: { someId: "01" somefield: "foobar" date: { foo: "bar" } }) {
             somefield
         }
     })gql"_graphql;

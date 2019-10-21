@@ -2,10 +2,13 @@ schema {
     mutation: Mutation
 }
 
+scalar DateTime
+
 input SomeInput {
     isApproved: Boolean! = true
     someId: String!
     somefield: String!
+    date: DateTime!
 }
 
 type Something {
