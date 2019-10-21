@@ -1,6 +1,7 @@
 #include "SomeSchema.h"
 
 #include <graphqlservice/JSONResponse.h>
+#include <gtest/gtest.h>
 
 #include <iostream>
 
@@ -16,7 +17,7 @@ public:
         return std::string("01");
     }
 
-	service::FieldResult<response::StringType> getSomefield(service::FieldParams&& params) const final
+    service::FieldResult<response::StringType> getSomefield(service::FieldParams&& params) const final
     {
         return std::string("foobar");
     }
@@ -33,7 +34,27 @@ public:
     }
 };
 
-void queryWithVariables(const std::shared_ptr<some::Operations>& operations)
+class SomeSchemaTest : public ::testing::Test
+{
+public:
+    static void SetUpTestCase()
+    {
+        operations_ = std::make_shared<some::Operations>(std::make_shared<MockMutation>());
+    }
+
+    static void TearDownTestCase()
+    {
+        operations_.reset();
+    }
+
+protected:
+    static std::shared_ptr<some::Operations> operations_;
+};
+
+std::shared_ptr<some::Operations> SomeSchemaTest::operations_{};
+
+
+TEST_F(SomeSchemaTest, queryWithVariables)
 {
     auto query = R"gql(mutation variables($data: SomeInput!) {
         withVariables: addSomething(input: $data) {
@@ -41,29 +62,19 @@ void queryWithVariables(const std::shared_ptr<some::Operations>& operations)
         }
     })gql"_graphql;
     auto variables = response::parseJSON(R"js({ "data": { "someId": "01", "somefield": "foobar", } })js");
-    auto result = operations->resolve({}, *query.root, "variables", std::move(variables)).get();
+    auto result = operations_->resolve({}, *query.root, "variables", std::move(variables)).get();
 
     std::cout << response::toJSON(std::move(result)) << std::endl;
 }
 
-void queryWithInlineInput(const std::shared_ptr<some::Operations>& operations)
+TEST_F(SomeSchemaTest, queryWithInlineInput)
 {
     auto query = R"gql(mutation inputs {
         withInlineInput: addSomething(input: { someId: "01" somefield: "foobar" }) {
             somefield
         }
     })gql"_graphql;
-    auto result = operations->resolve({}, *query.root, "inputs", {}).get();
+    auto result = operations_->resolve({}, *query.root, "inputs", {}).get();
 
     std::cout << response::toJSON(std::move(result)) << std::endl;
-}
-
-int main(int argc, char** argv)
-{
-    auto operations = std::make_shared<some::Operations>(std::make_shared<MockMutation>());
-    
-    queryWithVariables(operations);
-    queryWithInlineInput(operations);
-
-    return 0;
 }
